@@ -1,0 +1,268 @@
+
+{
+ "AWSTemplateFormatVersion": "2010-09-09",
+
+ "Parameters": {
+  
+  "MountTargetVPCCIDR": {
+     "Description": "-",
+     "Type": "String",
+     "Default": "10.0.0.0/16"
+ },
+
+ 
+ "MountTargetSubnetOneCIDR": {
+     "Description": "Eenter the Cidr for MountTargetSubnetOne",
+     "Type": "String",
+     "Default": "10.0.1.0/24"
+ },
+ 
+ "MountTargetSubnetTwoCIDR": {
+     "Description": "Eenter the Cidr for MountTargetSubnetTwo",
+     "Type": "String",
+     "Default": "10.0.2.0/24"
+ },
+ 
+ 
+ "MountTargetSubnetThreeCIDR": {
+     "Description": "Eenter the Cidr for MountTargetSubnetThree",
+     "Type": "String",
+     "Default": "10.0.3.0/24"
+ }
+ 
+
+},
+ 
+"Resources": {
+     "MountTargetVPC": {
+         "Type": "AWS::EC2::VPC",
+         "Properties": {
+             "CidrBlock": 
+             { "Ref": "MountTargetVPCCIDR" }
+             
+         }
+     },
+
+     "MountTargetSubnetOne": {
+         "Type": "AWS::EC2::Subnet",
+         "Properties": {
+             "CidrBlock": 
+             { "Ref": "MountTargetSubnetOneCIDR" }
+             ,
+             "VpcId": {
+                 "Ref": "MountTargetVPC"
+             },
+             "AvailabilityZone" : {
+              "Fn::Select" : [ 
+                0, 
+                { 
+                  "Fn::GetAZs" : "" 
+                } 
+              ]
+            }
+         }
+     },
+
+   
+     "MountTargetSubnetTwo": {
+         "Type": "AWS::EC2::Subnet",
+         "Properties": {
+             "CidrBlock": 
+             { "Ref": "MountTargetSubnetTwoCIDR" }
+             ,
+             "VpcId": {
+                 "Ref": "MountTargetVPC"
+             },
+             "AvailabilityZone" : {
+              "Fn::Select" : [ 
+                1, 
+                { 
+                  "Fn::GetAZs" : "" 
+                } 
+              ]
+            }
+         }
+     },
+
+     "MountTargetSubnetThree": {
+         "Type": "AWS::EC2::Subnet",
+         "Properties": {
+             "CidrBlock": 
+             { "Ref": "MountTargetSubnetThreeCIDR" }
+             ,
+             "VpcId": {
+                 "Ref": "MountTargetVPC"
+             },
+             "AvailabilityZone" : {
+              "Fn::Select" : [ 
+                3, 
+                { 
+                  "Fn::GetAZs" : "" 
+                } 
+              ]
+            }
+         }
+     },
+     
+    "FileSystemResource": {
+         "Type": "AWS::EFS::FileSystem",
+         "Properties": {
+             "PerformanceMode": "maxIO",
+             "LifecyclePolicies":[
+                 {
+                     "TransitionToIA" : "AFTER_30_DAYS"
+                 },
+                 {
+                     "TransitionToPrimaryStorageClass" : "AFTER_1_ACCESS"
+                 }
+             ],    
+             "Encrypted": true,
+             "FileSystemTags": [
+                 {
+                     "Key": "Name",
+                     "Value": "TestFileSystem"
+                 }
+             ],
+             "FileSystemPolicy": {
+                 "Version": "2012-10-17",
+                 "Statement": [
+                     {
+                         "Effect": "Allow",
+                         "Action": [
+                             "elasticfilesystem:ClientMount"
+                         ],
+     
+                         "Principal":  {"AWS": "arn:aws:iam::812714054388:role/aws-service-role/elasticfilesystem.amazonaws.com/AWSServiceRoleForAmazonElasticFileSystem"}
+                     }
+                 ]
+             },
+            
+             "BackupPolicy": {
+                 "Status": "ENABLED"
+                 },
+             "KmsKeyId": {
+                 "Fn::GetAtt": [
+                     "key",
+                     "Arn"
+                 ]
+             }
+         } 
+     },
+     
+     "key": {
+         "Type": "AWS::KMS::Key",
+         "Properties": {
+             "KeyPolicy": {
+                 "Version": "2012-10-17",
+                 "Id": "key-default-1",
+                 "Statement": [
+                     {
+                         "Sid": "Allow administration of the key",
+                         "Effect": "Allow",
+                         "Principal": {
+                             "AWS": {
+                                 "Fn::Join": [
+                                     "",
+                                     [
+                                         "arn:aws:iam::",
+                                         {
+                                             "Ref": "AWS::AccountId"
+                                         },
+                                         ":root"
+                                     ]
+                                 ]
+                             }
+                         },
+                         "Action": [
+                             "kms:*"
+                         ],
+                         "Resource": "*"
+                     }
+                 ]
+             }
+         }
+     },
+    
+     "MountTargetResource1": {
+         "Type": "AWS::EFS::MountTarget",
+         "Properties": {
+             "FileSystemId": {
+                 "Ref": "FileSystemResource"
+             },
+             "SubnetId": {
+                 "Ref": "MountTargetSubnetOne"
+             },
+             "SecurityGroups": [
+                 {
+                     "Fn::GetAtt": [
+                         "MountTargetVPC",
+                         "DefaultSecurityGroup"
+                     ]
+                 }
+             ]
+         }
+     },
+     "MountTargetResource2": {
+         "Type": "AWS::EFS::MountTarget",
+         "Properties": {
+             "FileSystemId": {
+                 "Ref": "FileSystemResource"
+             },
+             "SubnetId": {
+                 "Ref": "MountTargetSubnetTwo"
+             },
+             "SecurityGroups": [
+                 {
+                     "Fn::GetAtt": [
+                         "MountTargetVPC",
+                         "DefaultSecurityGroup"
+                     ]
+                 }
+             ]
+         }
+     },
+     "MountTargetResource3": {
+         "Type": "AWS::EFS::MountTarget",
+         "Properties": {
+             "FileSystemId": {
+                 "Ref": "FileSystemResource"
+             },
+             "SubnetId": {
+                 "Ref": "MountTargetSubnetThree"
+             },
+             "SecurityGroups": [
+                 {
+                     "Fn::GetAtt": [
+                         "MountTargetVPC",
+                         "DefaultSecurityGroup"
+                     ]
+                 }
+             ]
+         }
+     },
+     "AccessPointResource": {
+         "Type": "AWS::EFS::AccessPoint",
+         "Properties": {
+             "FileSystemId": {
+                 "Ref": "FileSystemResource"
+             },
+             "PosixUser": {
+                 "Uid": "13234",
+                 "Gid": "1322",
+                 "SecondaryGids": [
+                     "1344",
+                     "1452"
+                 ]
+             },
+             "RootDirectory": {
+                 "CreationInfo": {
+                     "OwnerGid": "708798",
+                     "OwnerUid": "7987987",
+                     "Permissions": "0755"
+                 },
+                 "Path": "/testcfn/abc"
+             }
+         }
+     }
+ }
+}
