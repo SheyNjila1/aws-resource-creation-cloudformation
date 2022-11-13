@@ -1,0 +1,483 @@
+{
+ "AWSTemplateFormatVersion": "2010-09-09",
+ "Description": "Custom VPC Creation With Private and Public Subnet",
+ "Parameters": {
+     "VPCName": {
+         "Description": "CIDR range for our VPC",
+         "Type": "String",
+         "Default": "GidOliCustomVPC"
+     },
+     "VPCCidr": {
+         "Description": "CIDR range for our VPC",
+         "Type": "String",
+         "Default": "10.0.0.0/16"
+     },
+     "PrivateSubnetACidr": {
+         "Description": "Private Subnet IP Range",
+         "Type": "String",
+         "Default": "10.0.0.0/24"
+     },
+     "PrivateSubnetBCidr": {
+         "Description": "Private Subnet IP Range",
+         "Type": "String",
+         "Default": "10.0.1.0/24"
+     },
+    
+    "PrivateSubnetCCidr": {
+        "Description": "Private Subnet IP Range",
+        "Type": "String",
+        "Default": "10.0.2.0/24"
+    },
+
+     "PublicSubnetACidr": {
+         "Description": "Public Subnet IP Range",
+         "Type": "String",
+         "Default": "10.0.3.0/24"
+     },
+     "PublicSubnetBCidr": {
+         "Description": "Public Subnet IP Range",
+         "Type": "String",
+         "Default": "10.0.4.0/24"
+     },
+     "PublicSubnetCCidr": {
+      "Description": "Public Subnet IP Range",
+      "Type": "String",
+      "Default": "10.0.5.0/24"
+  },
+    
+     "AvailabilityZone1": {
+         "Description": "Avaibalbility Zone 1",
+         "Type": "String",
+         "Default": "us-east-1a"
+     },
+     "AvailabilityZone2": {
+         "Description": "Avaibalbility Zone 2",
+         "Type": "String",
+         "Default": "us-east-1b"
+     },
+     "AvailabilityZone3": {
+      "Description": "Avaibalbility Zone 3",
+      "Type": "String",
+      "Default": "us-east-1c"
+  }
+ },
+ "Resources": {
+     "GidOliVPC": {
+         "Type": "AWS::EC2::VPC",
+         "Properties": {
+             "EnableDnsSupport": true,
+             "EnableDnsHostnames": true,
+             "CidrBlock": {
+                 "Ref": "VPCCidr"
+             },
+             "Tags": [
+                 {
+                     "Key": "Name",
+                     "Value": {
+                         "Ref": "VPCName"
+                     }
+                 }
+             ]
+         }
+     },
+     "PrivateSubnet1": {
+         "Type": "AWS::EC2::Subnet",
+         "Properties": {
+             "VpcId": {
+                 "Ref": "GidOliVPC"
+             },
+             "AvailabilityZone": {
+                 "Ref": "AvailabilityZone1"
+             },
+             "CidrBlock": {
+                 "Ref": "PrivateSubnetACidr"
+             },
+             "Tags": [
+                 {
+                     "Key": "Name",
+                     "Value": {
+                         "Fn::Sub": "${VPCName}-PrivateSubnetA"
+                     }
+                 }
+             ]
+         }
+     },
+    
+     "PrivateSubnet2": {
+         "Type": "AWS::EC2::Subnet",
+         "Properties": {
+             "VpcId": {
+                 "Ref": "GidOliVPC"
+             },
+             "AvailabilityZone": {
+                 "Ref": "AvailabilityZone2"
+             },
+             "CidrBlock": {
+                 "Ref": "PrivateSubnetBCidr"
+             },
+             "Tags": [
+                 {
+                     "Key": "Name",
+                     "Value": {
+                         "Fn::Sub": "${VPCName}-PrivateSubnet2"
+                     }
+                 }
+             ]
+         }
+     },
+
+     "PrivateSubnet3": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+          "VpcId": {
+              "Ref": "GidOliVPC"
+          },
+          "AvailabilityZone": {
+              "Ref": "AvailabilityZone3"
+          },
+          "CidrBlock": {
+              "Ref": "PrivateSubnetCCidr"
+          },
+          "Tags": [
+              {
+                  "Key": "Name",
+                  "Value": {
+                      "Fn::Sub": "${VPCName}-PrivateSubnet3"
+                  }
+              }
+          ]
+      }
+  },
+
+     "PublicSubnet1": {
+         "Type": "AWS::EC2::Subnet",
+         "Properties": {
+             "VpcId": {
+                 "Ref": "GidOliVPC"
+             },
+             "AvailabilityZone": {
+                 "Ref": "AvailabilityZone1"
+             },
+             "CidrBlock": {
+                 "Ref": "PublicSubnetACidr"
+             },
+             "MapPublicIpOnLaunch": true,
+             "Tags": [
+                 {
+                     "Key": "Name",
+                     "Value": {
+                         "Fn::Sub": "${VPCName}-PublicSubnet1"
+                     }
+                 }
+             ]
+         }
+     },
+
+     "PublicSubnet2": {
+         "Type": "AWS::EC2::Subnet",
+         "Properties": {
+             "VpcId": {
+                 "Ref": "GidOliVPC"
+             },
+             "AvailabilityZone": {
+                 "Ref": "AvailabilityZone2"
+             },
+             "CidrBlock": {
+                 "Ref": "PublicSubnetBCidr"
+             },
+             "MapPublicIpOnLaunch": true,
+             "Tags": [
+                 {
+                     "Key": "Name",
+                     "Value": {
+                         "Fn::Sub": "${VPCName}-PublicSubnetB"
+                     }
+                 }
+             ]
+         }
+     },
+
+     "PublicSubnet3": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+          "VpcId": {
+              "Ref": "GidOliVPC"
+          },
+          "AvailabilityZone": {
+              "Ref": "AvailabilityZone3"
+          },
+          "CidrBlock": {
+              "Ref": "PublicSubnetCCidr"
+          },
+          "MapPublicIpOnLaunch": true,
+          "Tags": [
+              {
+                  "Key": "Name",
+                  "Value": {
+                      "Fn::Sub": "${VPCName}-PublicSubnet3"
+                  }
+              }
+          ]
+      }
+  },
+
+     "InternetGateway": {
+         "Type": "AWS::EC2::InternetGateway"
+     },
+     "VPCGatewayAttachment": {
+         "Type": "AWS::EC2::VPCGatewayAttachment",
+         "Properties": {
+             "VpcId": {
+                 "Ref": "GidOliVPC"
+             },
+             "InternetGatewayId": {
+                 "Ref": "InternetGateway"
+             }
+         }
+     },
+
+     "PublicRouteTable": {
+         "Type": "AWS::EC2::RouteTable",
+         "Properties": {
+             "VpcId": {
+                 "Ref": "GidOliVPC"
+             }
+         }
+     },
+
+     "PublicRoute": {
+         "Type": "AWS::EC2::Route",
+         "DependsOn": "VPCGatewayAttachment",
+         "Properties": {
+             "RouteTableId": {
+                 "Ref": "PublicRouteTable"
+             },
+             "DestinationCidrBlock": "0.0.0.0/0",
+             "GatewayId": {
+                 "Ref": "InternetGateway"
+             }
+         }
+     },
+     "PublicSubnetRouteTableAssociation1": {
+         "Type": "AWS::EC2::SubnetRouteTableAssociation",
+         "Properties": {
+             "SubnetId": {
+                 "Ref": "PublicSubnet1"
+             },
+             "RouteTableId": {
+                 "Ref": "PublicRouteTable"
+             }
+         }
+     },
+     "PublicSubnetRouteTableAssociation2": {
+         "Type": "AWS::EC2::SubnetRouteTableAssociation",
+         "Properties": {
+             "SubnetId": {
+                 "Ref": "PublicSubnet2"
+             },
+             "RouteTableId": {
+                 "Ref": "PublicRouteTable"
+             }
+         }
+     },
+     "ElasticIPA": {
+         "Type": "AWS::EC2::EIP",
+         "Properties": {
+             "Domain": "vpc"
+         }
+     },
+     "ElasticIPB": {
+         "Type": "AWS::EC2::EIP",
+         "Properties": {
+             "Domain": "vpc"
+         }
+     },
+     "NATGatewayA": {
+         "Type": "AWS::EC2::NatGateway",
+         "Properties": {
+             "AllocationId": {
+                 "Fn::GetAtt": [
+                     "ElasticIPA",
+                     "AllocationId"
+                 ]
+             },
+             "SubnetId": {
+                 "Ref": "PublicSubnet1"
+             }
+         }
+     },
+     "NATGatewayB": {
+         "Type": "AWS::EC2::NatGateway",
+         "Properties": {
+             "AllocationId": {
+                 "Fn::GetAtt": [
+                     "ElasticIPB",
+                     "AllocationId"
+                 ]
+             },
+             "SubnetId": {
+                 "Ref": "PublicSubnet2"
+             }
+         }
+     },
+     "PrivateRouteTableA": {
+         "Type": "AWS::EC2::RouteTable",
+         "Properties": {
+             "VpcId": {
+                 "Ref": "GidOliVPC"
+             }
+         }
+     },
+     "PrivateRouteTableB": {
+         "Type": "AWS::EC2::RouteTable",
+         "Properties": {
+             "VpcId": {
+                 "Ref": "GidOliVPC"
+             }
+         }
+     },
+     "PrivateRouteToInternet1": {
+         "Type": "AWS::EC2::Route",
+         "Properties": {
+             "RouteTableId": {
+                 "Ref": "PrivateRouteTableA"
+             },
+             "DestinationCidrBlock": "0.0.0.0/0",
+             "NatGatewayId": {
+                 "Ref": "NATGatewayA"
+             }
+         }
+     },
+     "PrivateRouteToInternet2": {
+         "Type": "AWS::EC2::Route",
+         "Properties": {
+             "RouteTableId": {
+                 "Ref": "PrivateRouteTableB"
+             },
+             "DestinationCidrBlock": "0.0.0.0/0",
+             "NatGatewayId": {
+                 "Ref": "NATGatewayB"
+             }
+         }
+     },
+     "PrivateSubnetRouteTableAssociation1": {
+         "Type": "AWS::EC2::SubnetRouteTableAssociation",
+         "Properties": {
+             "SubnetId": {
+                 "Ref": "PrivateSubnet1"
+             },
+             "RouteTableId": {
+                 "Ref": "PrivateRouteTableA"
+             }
+         }
+     },
+     "PrivateSubnetRouteTableAssociation2": {
+         "Type": "AWS::EC2::SubnetRouteTableAssociation",
+         "Properties": {
+             "SubnetId": {
+                 "Ref": "PrivateSubnet2"
+             },
+             "RouteTableId": {
+                 "Ref": "PrivateRouteTableB"
+             }
+         }
+     },
+     "GidOliInstance": {
+         "Type": "AWS::EC2::Instance",
+         "Properties": {
+             "ImageId": "ami-09d3b3274b6c5d4aa",
+             "InstanceType": "t2.micro",
+             "AvailabilityZone": {
+                 "Ref": "AvailabilityZone1"
+             },
+             "SubnetId": 
+              {
+                 "Ref": "PublicSubnet1"},
+             
+          
+
+             "KeyName": "ec2kp",
+             "SecurityGroupIds": [
+                 {
+                     "Ref": "DemoSecurityGroup"
+                 }
+             ],
+             "UserData": {
+                 "Fn::Base64": {
+                     "Fn::Sub": "#!/bin/bash\nyum update -y\nyum install -y httpd.x86_64\nsystemctl start httpd.service\nsystemctl enable httpd.service\necho ?Hello World from $(hostname -f)? > /var/www/html/index.html\n"
+                 }
+             }
+         }
+     },
+
+     "DemoSecurityGroup": {
+         "Type": "AWS::EC2::SecurityGroup",
+         "Properties": {
+             "VpcId": {
+                 "Ref": "GidOliVPC"
+             },
+             "GroupDescription": "SG to allow SSH and HTTP",
+             "SecurityGroupIngress": [
+                 {
+                     "IpProtocol": "tcp",
+                     "FromPort": "22",
+                     "ToPort": "22",
+                     "CidrIp": "0.0.0.0/0"
+                 },
+                 {
+                     "IpProtocol": "tcp",
+                     "FromPort": 80,
+                     "ToPort": 80,
+                     "CidrIp": "0.0.0.0/0"
+                 }
+             ],
+             "Tags": [
+                 {
+                     "Key": "Name",
+                     "Value": "EC2-SG"
+                 }
+             ]
+         }
+     }
+ },
+
+ 
+ "Outputs": {
+     "VPCId": {
+         "Description": "vpc id",
+         "Value": {
+             "Ref": "GidOliVPC"
+         }
+     },
+     "PublicSubnetA": {
+         "Description": "SubnetId of public subnet A",
+         "Value": {
+             "Ref": "PublicSubnet1"
+         }
+     },
+     "PublicSubnetB": {
+         "Description": "SubnetId of public subnet B",
+         "Value": {
+             "Ref": "PublicSubnet2"
+         }
+     },
+     "PrivateSubnetA": {
+         "Description": "SubnetId of private subnet A",
+         "Value": {
+             "Ref": "PrivateSubnet1"
+         }
+     },
+     "PrivateSubnetB": {
+         "Description": "SubnetId of private subnet B",
+         "Value": {
+             "Ref": "PublicSubnet2"
+         }
+     },
+     "GidOliInstanceId": {
+         "Description": "Gidoli Instance Id",
+         "Value": {
+             "Ref": "GidOliInstance"
+         }
+     }
+ }
+}

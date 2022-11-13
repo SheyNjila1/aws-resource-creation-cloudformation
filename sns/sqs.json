@@ -1,0 +1,99 @@
+
+{
+ "AWSTemplateFormatVersion" : "2010-09-09",
+
+ "Description" : "This example template shows how to create an Amazon SQS queue with CloudWatch alarms on queue depth. This template creates an Amazon SQS queue and one or more CloudWatch alarms. You will be billed for the AWS resources used if you create a stack using this template.",
+
+ "Parameters" : {
+   "AlarmEmail": {
+     "Default": "jane.doe@example.com",
+     "Description": "Email address to notify of operational issues",
+     "Type": "String"
+   }
+ },
+
+ "Resources" : {
+   "MyQueue" : {
+     "Type" : "AWS::SQS::Queue",
+     "Properties" : {
+        "QueueName" : "SampleQueue"
+     }
+   },
+   "AlarmTopic": {
+     "Type": "AWS::SNS::Topic",
+     "Properties": {
+       "Subscription": [{
+         "Endpoint": { "Ref": "AlarmEmail" },
+         "Protocol": "email"
+       }]
+     }
+   },
+   "QueueDepthAlarm": {
+     "Type": "AWS::CloudWatch::Alarm",
+     "Properties": {
+       "AlarmDescription": "Alarm if queue depth increases to more than 10 messages",
+       "Namespace": "AWS/SQS",
+       "MetricName": "ApproximateNumberOfMessagesVisible",
+       "Dimensions": [{
+         "Name": "QueueName",
+         "Value" : { "Fn::GetAtt" : ["MyQueue", "QueueName"] }
+       }],
+       "Statistic": "Sum",
+       "Period": "300",
+       "EvaluationPeriods": "1",
+       "Threshold": "10",
+       "ComparisonOperator": "GreaterThanThreshold",
+       "AlarmActions": [{
+         "Ref": "AlarmTopic"
+       }],
+       "InsufficientDataActions": [{
+         "Ref": "AlarmTopic"
+       }]
+     }
+   }
+ },
+
+
+  
+ 
+ "SampleSQSPolicy" : {
+  "Type" : "AWS::SQS::QueuePolicy",
+  "Properties" : {
+    "Queues" :  ["https://sqs:us-east-2.amazonaws.com/444455556666/queue2"],
+    "PolicyDocument": {
+      "Statement":[{
+        "Action":["SQS:SendMessage", "SQS:ReceiveMessage"],
+        "Effect":"Allow",
+        "Resource": "arn:aws:sqs:us-east-2:444455556666:queue2",
+        "Principal": {
+          "AWS": [
+            "111122223333"]
+        }
+      }]
+    }
+  }
+}     
+      
+
+
+
+
+
+ "Outputs" : {
+   "QueueURL" : {
+     "Description" : "URL of new Amazon SQS Queue",
+     "Value" : { "Ref" : "MyQueue" }
+   },
+   "QueueARN" : {
+     "Description" : "ARN of new Amazon SQS Queue",
+     "Value" : { "Fn::GetAtt" : ["MyQueue", "Arn"]}
+   },
+   "QueueName" : {
+     "Description" : "Name new Amazon SQS Queue",
+     "Value" : { "Fn::GetAtt" : ["MyQueue", "QueueName"]}
+   }
+ }
+}
+
+
+

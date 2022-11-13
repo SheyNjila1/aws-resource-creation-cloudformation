@@ -1,0 +1,9 @@
+---
+- name: Removing "{{ lookup('env','RDS_STACK_NAME') }}"
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: delete a stack
+      cloudformation:
+        aws_access_key: "{{ lookup('env','ACCESS_KEY') }}"
+        aws_secret_key: "{{ lookup('env','SECRET_KEY') }}"

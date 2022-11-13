@@ -1,0 +1,199 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "this template creates a vpc and two subnets",
+    "Metadata": {
+    },
+    "Parameters": {
+      "EnvironmentName": {
+          "Description": "Select and environment",
+          "Type": "String",
+          "AllowedValues": [
+          "Dev",
+          "stg",
+          "test",
+          "accept",
+          "Prod"
+        ],
+        "ConstraintDescription": "Environment must match with specified AllowedValue"
+
+      },
+
+      "vpconecidr": {
+          "Description": "cidrblock for mwvpc",
+          "Type": "String",
+          "Default": "10.0.0.0/16"
+      },
+      "publicsubnetcidr": {
+          "Description": "cidr block for public subnet",
+          "Type": "String",
+          "Default": "10.0.1.0/24"
+      },
+      "privatesubnetcidr": {
+          "Description": "cidr block for private subnet",
+          "Type": "String",
+          "Default": "10.0.2.0/24"
+      },
+      "keypairname": {
+          "Description": "fisayoskeys",
+          "Type": "String",
+          "Default": "sheyec2key"
+      },
+      "ImageId": {
+          "Description": "Image ID",
+          "Type": "String",
+          "Default": "ami-0022f774911c1d690"
+      },
+      "InstanceType": {
+          "Description": "Instance Type",
+          "Type": "String",
+          "Default": "t2.micro"
+      }
+    },
+
+    # Mapping Section: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/mappings-section-structure.html
+    "Mappings": {
+      "AWSInstanceType2Arch" : {
+        "t1.micro"    : { "Arch" : "HVM64"  },
+        "t2.nano"     : { "Arch" : "HVM64"  },
+        "t2.micro"    : { "Arch" : "HVM64"  },
+        "t2.small"    : { "Arch" : "HVM64"  },
+        "t2.medium"   : { "Arch" : "HVM64"  }
+      },
+      "AWSRegionArch2AMI" : {
+        "us-east-1"        : {"HVM64" : "ami-032930428bf1abbff", "HVMG2" : "ami-0aeb704d503081ea6"},
+        "us-east-2"        : {"HVM64" : "ami-027cab9a7bf0155df", "HVMG2" : "NOT_SUPPORTED"},
+        "us-west-1"        : {"HVM64" : "ami-088c153f74339f34c", "HVMG2" : "ami-0a7fc72dc0e51aa77"},
+        "us-west-2"        : {"HVM64" : "ami-01fee56b22f308154", "HVMG2" : "ami-0fe84a5b4563d8f27"}
+      }
+
+    },  # Mapping ends here
+
+    "Conditions": {
+    },
+
+
+
+    "Resources": {
+      "mwvpc": {
+        "Type": "AWS::EC2::VPC",
+        "Properties": {
+          "CidrBlock": { "Ref": "vpconecidr" },
+          "Tags": [{ "Key": "Name", "Value":  "m-w-vpc1" }]
+        }
+      },
+      "mwpublicsubnet": {
+        "Type": "AWS::EC2::Subnet",
+        "Properties": {
+          "AvailabilityZone": "us-east-2a",
+          "VpcId": { "Ref": "mwvpc" },
+          "CidrBlock": { "Ref": "publicsubnetcidr" },
+          "Tags": [{ "Key": "Name", "Value":  "m-w-pub-subnet" }]
+        }
+      },
+      "mwprivatesubnet": {
+        "Type": "AWS::EC2::Subnet",
+        "Properties": {
+          "AvailabilityZone": "us-east-2b",
+          "VpcId": { "Ref": "mwvpc" },
+          "CidrBlock": { "Ref": "privatesubnetcidr" },
+          "Tags": [{ "Key": "Name", "Value":  "m-w-pri-subnet" }]
+        }
+      },
+      "mwigw": {
+        "Type": "AWS::EC2::InternetGateway",
+        "Properties": {
+          "Tags": [{ "Key": "Name", "Value":  "m-w-igw" }]
+        }
+      },
+      "AttachGateway": {
+        "Type": "AWS::EC2::VPCGatewayAttachment",
+        "Properties": {
+          "VpcId": { "Ref": "mwvpc" },
+          "InternetGatewayId": { "Ref": "mwigw" }
+        }
+      },
+      "mwRouteTable": {
+        "Type": "AWS::EC2::RouteTable",
+        "Properties": {
+          "VpcId": { "Ref": "mwvpc" },
+          "Tags": [{ "Key": "Name", "Value":  "m-w-RouteTable" }]
+        }
+      },
+      "mwroute": {
+        "Type": "AWS::EC2::Route",
+        "Properties": {
+          "RouteTableId": { "Ref": "mwRouteTable" },
+          "DestinationCidrBlock": "0.0.0.0/0",
+          "GatewayId": { "Ref": "mwigw" }
+
+        }
+      },
+      "mwrouteTableAssocpub": {
+        "Type": "AWS::EC2::SubnetRouteTableAssociation",
+        "Properties": {
+          "SubnetId": { "Ref": "mwpublicsubnet" },
+          "RouteTableId": { "Ref": "mwRouteTable" }
+        }
+      },
+      "mwNAT" : {
+      "Type" : "AWS::EC2::NatGateway",
+      "Properties" : {
+       "AllocationId" : { "Fn::GetAtt" : ["EIP", "AllocationId"]},
+       "SubnetId" : { "Ref": "mwpublicsubnet" },
+       "Tags" : [ {"Key" : "Name", "Value" : "m-w-NAT" } ]
+       }
+     },
+     "EIP" : {
+     "Type" : "AWS::EC2::EIP",
+     "Properties" : {
+     "Domain" : { "Ref": "mwvpc" }
+      }
+    },
+    "mwInstanceSecurityGroup" : {
+      "Type" : "AWS::EC2::SecurityGroup",
+      "Properties" : {
+          "GroupDescription" : "Allow http to client host",
+          "VpcId" : {"Ref" : "mwvpc"},
+          "SecurityGroupIngress" : [{
+              "IpProtocol" : "tcp",
+              "FromPort" : 80,
+              "ToPort" : 80,
+              "CidrIp" : "0.0.0.0/0"
+          }],
+          "SecurityGroupEgress" : [{
+              "IpProtocol" : "tcp",
+              "FromPort" : 80,
+              "ToPort" : 80,
+              "CidrIp" : "0.0.0.0/0"
+          }]
+      }
+  },
+    "mwwebserver": {
+        "Type": "AWS::EC2::Instance",
+        "Properties": {
+            "KeyName": { "Ref": "keypairname" },
+
+            "ImageId": { "Ref": "ImageId" },
+            "SubnetId": { "Ref": "mwpublicsubnet" },
+            "InstanceType": { "Ref": "InstanceType" },
+            "Monitoring": "false",
+            "SecurityGroupIds" : [{ "Ref": "mwInstanceSecurityGroup" }],
+            "Tags": [{
+                  "Key": "Name",
+                 "Value": "m-w-webserver"
+               }],
+              }
+            }
+
+    },
+    "Outputs": {
+      "Yourvpc": {
+        "Description": "The SSH Security Group for our Company",
+        "Value": { "Ref": "jjtechWebServerSG" },
+        "Export": {
+          "Name": "WebServerSecurityGroup"
+        }
+      },
+
+    }
+}
