@@ -399,7 +399,7 @@
              "KeyName": "ec2kp",
              "SecurityGroupIds": [
                  {
-                     "Ref": "DemoSecurityGroup"
+                     "Ref": "GidOliSecurityGroup"
                  }
              ],
              "UserData": {
@@ -410,7 +410,7 @@
          }
      },
 
-     "DemoSecurityGroup": {
+     "GidOliSecurityGroup": {
          "Type": "AWS::EC2::SecurityGroup",
          "Properties": {
              "VpcId": {
