@@ -132,7 +132,7 @@
                              "elasticfilesystem:ClientMount"
                          ],
      
-                         "Principal":  {"AWS": "arn:aws:iam::812714054388:role/aws-service-role/elasticfilesystem.amazonaws.com/AWSServiceRoleForAmazonElasticFileSystem"}
+                         "Principal":  {"AWS": "arn:aws:iam::<AccountID>:role/aws-service-role/elasticfilesystem.amazonaws.com/AWSServiceRoleForAmazonElasticFileSystem"}
                      }
                  ]
              },
